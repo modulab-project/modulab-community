@@ -1,0 +1,42 @@
+name: Validate manifest entries
+
+on:
+  pull_request:
+    paths:
+      - "**/manifest.yaml"
+  push:
+    branches: [main]
+    paths:
+      - "**/manifest.yaml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout modulab-community
+        uses: actions/checkout@v4
+
+      - name: Checkout modulab-manifest-schema
+        uses: actions/checkout@v4
+        with:
+          repository: modulab-project/modulab-manifest-schema
+          path: .schema
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate all manifest.yaml files
+        run: |
+          set -euo pipefail
+          status=0
+          for manifest in $(find . -path ./.schema -prune -o -name "manifest.yaml" -print); do
+            min_core_api=$(npx --yes js-yaml "$manifest" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const j=JSON.parse(d);console.log(j.min_core_api||'v1')})")
+            schema=".schema/${min_core_api}/manifest.schema.json"
+            echo "Validating $manifest against $schema"
+            npx --yes js-yaml "$manifest" > "$(mktemp /tmp/manifest.XXXXXX.json)"
+            tmpjson=$(ls /tmp/manifest.*.json | tail -n1)
+            npx --yes ajv-cli validate -s "$schema" -d "$tmpjson" --strict=false || status=1
+          done
+          exit $status
