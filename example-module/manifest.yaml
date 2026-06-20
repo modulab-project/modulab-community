@@ -1,0 +1,25 @@
+# Example discovery entry. Copy this directory, rename it to your module's
+# name (without the modulab-mod- prefix), and adjust the fields below.
+# See CONTRIBUTING.md for the full process.
+
+name: "modulab-mod-example"
+version: "1.0.0"
+author: "Your name or organization"
+license: "MIT"
+category: "productivity"
+min_core_api: "v1"
+min_core_ui: "v1"
+tier: 2
+scope: "per-location"
+startup: "lazy"
+
+resources:
+  memory: "128m"
+  timeout: "10s"
+
+handler: "handlers/index.ts"
+
+# Required for modulab-community entries:
+source_repo: "https://github.com/your-username/modulab-mod-example"
+manifest_path: "manifest.yaml"
+release_url: "https://github.com/your-username/modulab-mod-example/releases/latest/download/module.zip"
